@@ -9,7 +9,6 @@ alpha = 0.1
 gamma = 0.9
 epsilon = 0.2
 
-# === Maze generation ===
 def generate_maze(rows, cols):
     return np.random.choice([0, 1], size=(rows, cols), p=[0.7, 0.3])
 
@@ -48,7 +47,6 @@ class MazeEnv:
     def get_state_idx(self, state):
         return state[0] * self.cols + state[1]
 
-# === BFS Reachability ===
 def bfs_reachable(env):
     from collections import deque
     q = deque([env.start])
@@ -65,7 +63,6 @@ def bfs_reachable(env):
                 q.append((nr, nc))
     return False
 
-# === A* Pathfinding ===
 def astar_path(env):
     start, goal = env.start, env.goal
     dirs = [(1, 0), (-1, 0), (0, 1), (0, -1)]
@@ -103,7 +100,6 @@ def astar_path(env):
                 heapq.heappush(open_set, (f, tentative_g, nxt, current))
     return []
 
-# === RL Training ===
 def train_agent_live(env, screen, episodes=10):
     n_states = env.rows * env.cols
     n_actions = 4
@@ -163,7 +159,6 @@ def get_rl_optimal_path(env, Q):
         path.append(env.goal)
     return path
 
-# === GIF/Frame Loader ===
 def load_gif_frames(path, size):
     pil_gif = Image.open(path)
     frames = []
@@ -178,7 +173,6 @@ def load_gif_frames(path, size):
         pass
     return frames
 
-# === Draw Maze ===
 def draw_maze(screen, env):
     for r in range(env.rows):
         for c in range(env.cols):
@@ -196,28 +190,24 @@ def draw_maze(screen, env):
 
     pygame.display.flip()
 
-# === Victory Celebration ===
 def show_victory_animation(screen):
     start_time = pygame.time.get_ticks()
-    duration = 3000  # 3 seconds
+    duration = 3000 
 
-    # Play celebration GIF for 3 seconds
     while pygame.time.get_ticks() - start_time < duration:
         frame = celebration_frames[(pygame.time.get_ticks() // 80) % len(celebration_frames)]
         screen.blit(frame, (0, 0))
         pygame.display.flip()
         pygame.time.delay(50)
 
-    # Then show VICTORY text
     screen.fill((0, 0, 0))
     font = pygame.font.SysFont("Arial", 60, bold=True)
     text = font.render(" GOAL ! ", True, (255, 215, 0))
     text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
     screen.blit(text, text_rect)
     pygame.display.flip()
-    pygame.time.delay(2000)  # show for 2 seconds
+    pygame.time.delay(2000)
 
-# === Smooth Rolling ===
 def animate_smooth_path(screen, env, path):
     for i in range(len(path) - 1):
         r1, c1 = path[i]
@@ -237,10 +227,17 @@ def animate_smooth_path(screen, env, path):
             pygame.display.flip()
             pygame.time.delay(30)
 
-    # ✅ After reaching the goal, show celebration
-    show_victory_animation(screen)
+    if path and path[-1] == env.goal:
+        show_victory_animation(screen)
+    else:
+        screen.fill((0, 0, 0))
+        font = pygame.font.SysFont("Arial", 60, bold=True)
+        text = font.render("OFFSIDE!", True, (255, 0, 0))
+        text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+        screen.blit(text, text_rect)
+        pygame.display.flip()
+        pygame.time.delay(2000)
 
-# === Solve Maze ===
 def solve_maze(env, screen):
     if not bfs_reachable(env):
         print("Goal unreachable -> using A*")
@@ -254,12 +251,10 @@ def solve_maze(env, screen):
         return astar_path(env)
     return rl_path
 
-# === MAIN ===
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Football Maze Agent")
 
-# Load images
 grass_img = pygame.image.load("grass_field.png")
 football_img = pygame.image.load("football.png")
 goalpost_img = pygame.image.load("goal_post.png")
@@ -268,7 +263,6 @@ grass_img_scaled = pygame.transform.scale(grass_img, (CELL_SIZE, CELL_SIZE))
 football_img_scaled = pygame.transform.scale(football_img, (CELL_SIZE, CELL_SIZE))
 goalpost_img_scaled = pygame.transform.scale(goalpost_img, (CELL_SIZE, CELL_SIZE))
 
-# Load GIFs
 rolling_frames = load_gif_frames("football.gif", (CELL_SIZE, CELL_SIZE))
 celebration_frames = load_gif_frames("celebration.gif", (WIDTH, HEIGHT))  # Full screen
 
